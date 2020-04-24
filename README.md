@@ -1,2 +1,2 @@
 # Resource-Allocation-D2D
-Resource allocation for Device-to-Device (D2D) communication using deep reinforcement learning
+Resource allocation for Device-to-Device (D2D) communications using deep reinforcement learning
