@@ -115,9 +115,9 @@ class Environ:
         self.height = height
         self.devices = []
         self.demands = []
-        self.D2D_power_dB = 23      # dBm
+        self.D2D_power_dB = 23           # dBm
         self.cellular_power_dB = 23      # dBm
-        self.D2D_power_dB_List = [23, 10, 5]             # the power levels
+        self.D2D_power_dB_List = [23, 10, 5]   # the power levels
         self.sig2_dB = -114
         self.bsAntGain = 8      # base station antenna gain
         self.bsNoiseFigure = 5  # base station noise figure
@@ -306,7 +306,6 @@ class Environ:
             print("Fast Fading: ",  self.cellular_channels.FastFading)
             print(" ============== D2D ===========")
             print("Path Loss: ", self.D2Dchannels.PathLoss[0:3])
-            print("Shadow:", self.D2Dchannels.Shadow[0:3])
             print("Fast Fading: ", self.D2Dchannels.FastFading[0:3])
 
     def update_large_fading(self, positions, time_step):
@@ -316,7 +315,6 @@ class Environ:
         self.D2Dchannels.update_pathloss()
         delta_distance = time_step * np.asarray([c.velocity for c in self.devices])
         self.cellular_channels.update_shadow(delta_distance)
-        self.D2Dchannels.update_shadow(delta_distance)
 
     def update_small_fading(self):
         self.cellular_channels.update_fast_fading()
@@ -351,13 +349,12 @@ class Environ:
         self.D2Dchannels.update_pathloss()
         delta_distance = 0.002 * np.asarray([c.velocity for c in self.devices])    # time slot is 2 ms
         self.cellular_channels.update_shadow(delta_distance)
-        self.D2Dchannels.update_shadow(delta_distance)
-        self.D2D_channels_abs = self.D2Dchannels.PathLoss + self.D2Dchannels.Shadow + 50 * np.identity(len(self.devices))
+        self.D2D_channels_abs = self.D2Dchannels.PathLoss + 50 * np.identity(len(self.devices))
         self.cellular_channels_abs = self.cellular_channels.PathLoss + self.cellular_channels.Shadow
 
     def renew_channels_fastfading(self):
         # =========================================================================
-        # This function updates all the V2V channels
+        # This function updates all the D2D channels
         # =========================================================================
         self.renew_channel()
         self.cellular_channels.update_fast_fading()
@@ -373,7 +370,7 @@ class Environ:
         actions = actions_power.copy()[:,:,0]  # the channel_selection_part
         power_selection = actions_power.copy()[:,:,1]
         Rate = np.zeros(len(self.devices))
-        Interference = np.zeros(self.n_RB)  # V2V signal interference to cellular links
+        Interference = np.zeros(self.n_RB)  # D2D signal interference to cellular links
         for i in range(len(self.devices)):
             for j in range(len(actions[i,:])):
                 if not self.activate_links[i,j]:
@@ -397,10 +394,10 @@ class Environ:
                 receiver_j = self.devices[indexes[j,0]].destinations[indexes[j,1]]
                 # compute the D2D signal links
                 D2D_Signal[indexes[j, 0],indexes[j, 1]] = 10**((self.D2D_power_dB_List[power_selection[indexes[j, 0],indexes[j, 1]]] - self.D2D_channels_with_fastfading[indexes[j][0]][receiver_j][i] + 2*self.devAntGain - self.devNoiseFigure)/10)
-                #V2V_Signal[indexes[j, 0],indexes[j, 1]] = 10**((self.V2V_power_dB_List[0] - self.V2V_channels_with_fastfading[indexes[j][0]][receiver_j][i])/10)
+                
                 if i < self.n_Dev:
-                    D2D_Interference[indexes[j,0],indexes[j,1]] += 10**((self.cellular_power_dB - self.D2D_channels_with_fastfading[i][receiver_j][i]+ 2*self.devAntGain - self.devNoiseFigure )/10)  # cellular links interference to V2V links
-                for k in range(j+1, len(indexes)):                  # computer the peer V2V links
+                    D2D_Interference[indexes[j,0],indexes[j,1]] += 10**((self.cellular_power_dB - self.D2D_channels_with_fastfading[i][receiver_j][i]+ 2*self.devAntGain - self.devNoiseFigure )/10)  # cellular links interference to D2D links
+                for k in range(j+1, len(indexes)):                  # computer the peer D2D links
                     #receiver_k = self.vehicles[indexes[k][0]].neighbors[indexes[k][1]]
                     receiver_k = self.devices[indexes[k][0]].destinations[indexes[k][1]]
                     D2D_Interference[indexes[j,0],indexes[j,1]] += 10**((self.D2D_power_dB_List[power_selection[indexes[k,0],indexes[k,1]]] - self.D2D_channels_with_fastfading[indexes[k][0]][receiver_j][i]+ 2*self.devAntGain - self.devNoiseFigure)/10)
@@ -451,7 +448,7 @@ class Environ:
         # ===================================================
         actions = actions_power[:,:,0]  # the channel_selection_part
         power_selection = actions_power[:,:,1]
-        Interference = np.zeros(self.n_RB)   # Calculate the interference from V2V to channels
+        Interference = np.zeros(self.n_RB)   # Calculate the interference from D2D to channels
         for i in range(len(self.devices)):
             for j in range(len(actions[i,:])):
                 if not self.activate_links[i,j]:
@@ -474,7 +471,7 @@ class Environ:
                 #V2V_Signal[indexes[j, 0],indexes[j, 1]] = 10**((self.V2V_power_dB_List[0] - self.V2V_channels_with_fastfading[indexes[j][0]][receiver_j][i])/10)
                 if i<self.n_Dev:
                     D2D_Interference[indexes[j,0],indexes[j,1]] += 10**((self.cellular_power_dB - \
-                    self.D2D_channels_with_fastfading[i][receiver_j][i] + 2*self.devAntGain - self.devNoiseFigure )/10)  # cellular links interference to V2V links
+                    self.D2D_channels_with_fastfading[i][receiver_j][i] + 2*self.devAntGain - self.devNoiseFigure )/10)  # cellular links interference to D2D links
                 for k in range(j+1, len(indexes)):
                     receiver_k = self.devices[indexes[k][0]].destinations[indexes[k][1]]
                     D2D_Interference[indexes[j,0],indexes[j,1]] += 10**((self.D2D_power_dB_List[power_selection[indexes[k,0],indexes[k,1]]] -\
@@ -493,7 +490,7 @@ class Environ:
         # -- compute the latency constraits --
         self.demand -= cellular_Rate * self.update_time_asyn * 1500    # decrease the demand
         self.test_time_count -= self.update_time_asyn               # compute the time left for estimation
-        self.individual_time_limit -= self.update_time_asyn         # compute the time left for individual V2V transmission
+        self.individual_time_limit -= self.update_time_asyn         # compute the time left for individual D2D transmission
         self.individual_time_interval -= self.update_time_asyn     # compute the time interval left for next transmission
 
         # --- update the demand ---
@@ -620,7 +617,7 @@ class Environ:
         self.D2D_Interference_all = 10 * np.log10(D2D_Interference)
 
     def renew_demand(self):
-        # generate a new demand of a V2V
+        # generate a new demand of a D2D
         self.demand = self.demand_amount*np.ones((self.n_RB,3))
         self.time_limit = 10
 
@@ -674,7 +671,7 @@ class Environ:
         if n_Dev > 0:
             self.n_Dev = n_Dev
         self.add_new_devices_by_number(int(self.n_Dev/4))
-        self.D2Dchannels = D2Dchannels(self.n_Dev, self.n_RB)  # number of vehicles
+        self.D2Dchannels = D2Dchannels(self.n_Dev, self.n_RB)  # number of devices
         self.cellular_channels = cellular_channels(self.n_Dev, self.n_RB)
         self.renew_channels_fastfading()
         self.renew_neighbor()
@@ -689,7 +686,7 @@ class Environ:
         self.failed_transmission = 0
         self.update_time_train = 0.01  # 10ms update time for the training
         self.update_time_test = 0.002 # 2ms update time for testing
-        self.update_time_asyn = 0.0002 # 0.2 ms update one subset of the vehicles; for each vehicle, the update time is 2 ms
+        self.update_time_asyn = 0.0002 # 0.2 ms update one subset of the devices; for each device, the update time is 2 ms
         self.activate_links = np.zeros((self.n_Dev,3), dtype='bool')
 
 
