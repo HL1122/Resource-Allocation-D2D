@@ -61,11 +61,10 @@ class cellular_channels:
     # Simulator of the cellular channels
     def __init__(self, n_Dev, n_RB):
         self.h_bs = 25
-        self.h_ms = 1.5
         self.Decorrelation_distance = 50
         self.BS_position = [750/2, 1299/2]    # Suppose the BS is in the center
         self.shadow_std = 8     # shadow standard
-        self.n_Dev = n_Dev      # number of vehicles
+        self.n_Dev = n_Dev      # number of devices
         self.n_RB = n_RB    # number of resource blocks
         self.update_shadow([])
 
@@ -78,7 +77,7 @@ class cellular_channels:
             d1 = abs(self.positions[i][0] - self.BS_position[0])
             d2 = abs(self.positions[i][1] - self.BS_position[1])
             distance = math.hypot(d1,d2)    # change from meters to kilometers
-            self.PathLoss[i] = 128.1 + 37.6*np.log10(math.sqrt(distance**2 + (self.h_bs-self.h_ms)**2)/1000)
+            self.PathLoss[i] = 128.1 + 37.6*np.log10(math.sqrt(distance**2 + (self.h_bs)**2)/1000)
 
     def update_shadow(self, delta_distance_list):
         if len(delta_distance_list) == 0:     # initialization
@@ -201,7 +200,7 @@ class Environ:
                     if (self.devices[i].position[1] >=self.left_lanes[j]) and ((self.devices[i].position[1] - delta_distance) <= self.left_lanes[j]):  # came to an cross
                         if (random.uniform(0,1) < 0.4):
                             self.devices[i].position = [self.devices[i].position[0] - (delta_distance - (self.devices[i].position[1]- self.left_lanes[j])), self.left_lanes[j]]
-                            #print ('down with left', self.vehicles[i].position)
+                            #print ('down with left', self.devices[i].position)
                             self.devices[i].direction = 'l'
                             change_direction = True
                             break
@@ -211,7 +210,7 @@ class Environ:
                         if (self.devices[i].position[1] >=self.right_lanes[j]) and (self.devices[i].position[1] - delta_distance <= self.right_lanes[j]):
                             if (random.uniform(0,1) < 0.4):
                                 self.devices[i].position = [self.devices[i].position[0] + (delta_distance + (self.devices[i].position[1]- self.right_lanes[j])),self.right_lanes[j]]
-                                #print ('down with right', self.vehicles[i].position)
+                                #print ('down with right', self.devices[i].position)
                                 self.devices[i].direction = 'r'
                                 change_direction = True
                                 break
