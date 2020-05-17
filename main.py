@@ -1,6 +1,10 @@
 from __future__ import division, print_function
 import random
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
+tf.disable_v2_behavior()
+
+import sys
+sys.path.append('C:/Users/Parantak Singh/Documents/ML/D2D/Resource-Allocation-D2D-master')
 from agent import Agent
 from Environment import *
 flags = tf.app.flags
@@ -24,6 +28,7 @@ flags.DEFINE_integer('random_seed', 123, 'Value of random seed')
 FLAGS = flags.FLAGS
 
 # Set random seed
+tf.app.flags.DEFINE_string('f', '', 'kernel')
 tf.set_random_seed(FLAGS.random_seed)
 random.seed(FLAGS.random_seed)
 
