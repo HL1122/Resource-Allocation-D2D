@@ -52,7 +52,7 @@ class D2Dchannels:
             self.ifLOS = True
         else:
             PL = min(PL_NLos(d1,d2), PL_NLos(d2,d1))
-            self.ifLOS = False                    
+            self.ifLOS = False
 
         return PL
 
@@ -106,7 +106,7 @@ class Environ:
     # Enviroment Simulator: Provides states and rewards to agents
     # Evolves to new state based on the actions taken by the d2d agent
     def __init__ (self, down_lanes, up_lanes, left_lanes, right_lanes, width, height):
-        self.timestamp = 0.01
+        self.timestep = 0.01
         self.down_lanes = down_lanes
         self.up_lanes = up_lanes
         self.left_lanes = left_lanes
@@ -394,7 +394,7 @@ class Environ:
                 receiver_j = self.devices[indexes[j,0]].destinations[indexes[j,1]]
                 # compute the D2D signal links
                 D2D_Signal[indexes[j, 0],indexes[j, 1]] = 10**((self.D2D_power_dB_List[power_selection[indexes[j, 0],indexes[j, 1]]] - self.D2D_channels_with_fastfading[indexes[j][0]][receiver_j][i] + 2*self.devAntGain - self.devNoiseFigure)/10)
-                
+
                 if i < self.n_Dev:
                     D2D_Interference[indexes[j,0],indexes[j,1]] += 10**((self.cellular_power_dB - self.D2D_channels_with_fastfading[i][receiver_j][i]+ 2*self.devAntGain - self.devNoiseFigure )/10)  # cellular links interference to D2D links
                 for k in range(j+1, len(indexes)):                  # computer the peer D2D links
@@ -488,7 +488,7 @@ class Environ:
         #print("Cellular information", cellular_Signals, self.cellular_Interference, cellular_Rate)
 
         # -- compute the latency constraits --
-        self.demand -= cellular_Rate * self.update_time_asyn * 1500    # decrease the demand
+        self.demand -= D2D_Rate * self.update_time_asyn * 1500    # decrease the demand
         self.test_time_count -= self.update_time_asyn               # compute the time left for estimation
         self.individual_time_limit -= self.update_time_asyn         # compute the time left for individual D2D transmission
         self.individual_time_interval -= self.update_time_asyn     # compute the time interval left for next transmission
@@ -573,7 +573,7 @@ class Environ:
                 if (i ==idx[0] and j == idx[1]):
                     continue
                 Interference[actions[i][j]] += 10**((self.D2D_power_dB_List[power_selection[i,j]] - \
-                self.celllar_channels_with_fastfading[i, actions[i][j]] + self.devAntGain + self.bsAntGain - self.bsNoiseFigure)/10)
+                self.cellular_channels_with_fastfading[i, actions[i][j]] + self.devAntGain + self.bsAntGain - self.bsNoiseFigure)/10)
         cellular_Interference = Interference + self.sig2
         for i in range(self.n_RB):
             for j in range(len(self.D2D_power_dB_List)):

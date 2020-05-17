@@ -5,7 +5,7 @@ import random
 import numpy as np
 
 import sys
-sys.path.append('C:/Users/Parantak Singh/Documents/ML/V2V/Resource-Allocation-D2D-master')
+sys.path.append('C:/Users/Parantak Singh/Documents/ML/D2D/Resource-Allocation-D2D-master')
 from base import BaseModel
 from replay_memory import ReplayMemory
 from utils import save_pkl, load_pkl
@@ -52,7 +52,7 @@ class Agent(BaseModel):
         device_number = len(self.env.devices)
         D2D_channel = (self.env.D2D_channels_with_fastfading[idx[0],self.env.devices[idx[0]].destinations[idx[1]],:] - 80)/60
         cellular_channel = (self.env.cellular_channels_with_fastfading[idx[0], :] - 80)/60
-        D2D_interference = (-self.env.D2D_Interference_all[idx[0],idx[1]:] - 60)/60
+        D2D_interference = (-self.env.D2D_Interference_all[idx[0],idx[1],:] - 60)/60
         NeiSelection = np.zeros(self.RB_number)
         for i in range(3):
             for j in range(3):
@@ -101,7 +101,7 @@ class Agent(BaseModel):
                 #self.save_weight_to_pkl()
             if self.step % self.target_q_update_step == self.target_q_update_step - 1:
                 #print("Update Target Q network:")
-                self.update_target_q_network()           
+                self.update_target_q_network()
 
     def train(self):
         num_game, self.update_count, ep_reward = 0, 0, 0.
@@ -372,5 +372,3 @@ class Agent(BaseModel):
         print('Mean of the cellular rate is that ', np.mean(cellular_Rate_list))
         print('Mean of Fail percent is that ', np.mean(Fail_percent_list))
         # print('Test Reward is ', np.mean(test_result))
-
-
